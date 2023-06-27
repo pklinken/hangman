@@ -27,6 +27,24 @@ void *xmalloc(size_t size)
 	return value;
 }
 
+void init_str(char *str, char init_char, int len)
+{
+	for (int i = 0; i < len; i++)
+	{
+		str[i] = init_char;
+	}
+}
+
+int has_char(char *str, char c)
+{
+	for (int i = 0; i < strlen(str); i++)
+	{
+		if (str[i] == c)
+			return 1;
+	}
+	return 0;
+}
+
 int prompt_user()
 {
 	char *user_input;
@@ -42,6 +60,8 @@ int prompt_user()
 		c = getchar();
 
 	printf("Your input: %c\n", in);
+
+	return in;
 }
 
 void load_wordlist(char ***result, int *wordcount)
@@ -104,7 +124,7 @@ int *get_blank_indices(int error_count)
 	return indices;
 }
 
-char *gen_drawing(int error_count)
+void print_hangman(int error_count)
 {
 	char *hangman_copy = xmalloc(strlen(hangman) + 1);
 	strcpy(hangman_copy, hangman);
@@ -118,28 +138,36 @@ char *gen_drawing(int error_count)
 		i++;
 	}
 
-	free(indices_to_blank);
+	printf(hangman_copy);
 
-	return hangman_copy;
+	free(indices_to_blank);
+	free(hangman_copy);
+}
+
+void print_w_guesses(char *word, char *guesses)
+{
+	char *output = xmalloc(sizeof(char) * strlen(word));
+	for (int i = 0; i < strlen(word) - 1; i++)
+	{
+		output[i] = '_';
+		for (int j = 0; j < strlen(guesses); j++)
+		{
+			if (word[i] == guesses[j])
+				output[i] = word[i];
+		}
+	}
+	output[strlen(word)] = '\0';
+
+	printf("%s\n", output);
+	free(output);
 }
 
 int main()
 {
-	printf(gen_drawing(0));
-	printf(gen_drawing(1));
-	printf(gen_drawing(2));
-	printf(gen_drawing(3));
-	printf(gen_drawing(4));
-	printf(gen_drawing(5));
-	printf(gen_drawing(6));
-	printf(gen_drawing(7));
-	printf(gen_drawing(8));
-
-	// int error_count = 1;
+	int error_count = 0;
 
 	// char *drawing = gen_drawing(error_count);
 	// printf(drawing);
-	return 0;
 
 	char **word_list;
 	int word_count;
@@ -153,15 +181,40 @@ int main()
 	}
 	printf("\n");
 
+	// srand (time (0));
+	char *word = word_list[rand() % word_count];
+
+	printf("%s", word);
+
+	char *guesses = malloc(sizeof(char) * strlen(word));
+	init_str(guesses, '\0', strlen(word));
+
 	int user_input;
 
 	while (1)
 	{
+		print_hangman(error_count);
+		print_w_guesses(word, guesses);
 		user_input = prompt_user();
 		if (user_input == EOF)
 		{
 			printf("Error reading stdin, aborting");
 			exit(1);
+		}
+		else
+		{
+			if (has_char(guesses, (char)user_input))
+			{
+				printf("You already guessed this letter!");
+				continue;
+			}
+			else
+				guesses[strlen(guesses)] = (char)user_input;
+
+			if (!has_char(word, (char)user_input))
+			{
+				error_count++;
+			}
 		}
 	}
 
