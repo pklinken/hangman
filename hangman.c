@@ -40,9 +40,9 @@ int has_char(char *str, char c)
 	for (int i = 0; i < strlen(str); i++)
 	{
 		if (str[i] == c)
-			return 1;
+			return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
 int prompt_user()
@@ -59,7 +59,7 @@ int prompt_user()
 	while (c != '\n' && c != EOF)
 		c = getchar();
 
-	printf("Your input: %c\n", in);
+	// printf("Your input: %c\n", in);
 
 	return in;
 }
@@ -138,15 +138,15 @@ void print_hangman(int error_count)
 		i++;
 	}
 
-	printf(hangman_copy);
+	printf("%s", hangman_copy);
 
 	free(indices_to_blank);
 	free(hangman_copy);
 }
 
-void print_w_guesses(char *word, char *guesses)
+void print_word(char *word, char *guesses)
 {
-	char *output = xmalloc(sizeof(char) * strlen(word));
+	char *output = xmalloc(sizeof(char) * strlen(word) - 1);
 	for (int i = 0; i < strlen(word) - 1; i++)
 	{
 		output[i] = '_';
@@ -156,45 +156,56 @@ void print_w_guesses(char *word, char *guesses)
 				output[i] = word[i];
 		}
 	}
-	output[strlen(word)] = '\0';
+	output[strlen(word) - 1] = '\0';
 
-	printf("%s\n", output);
+	printf("Guess the word: %s\n", output);
 	free(output);
+}
+
+int check_for_win(char *word, char *guesses)
+{
+	for (int i = 0; i < strlen(word) - 1; i++)
+	{
+		if (!has_char(guesses, word[i]))
+			return FALSE;
+	}
+
+	return TRUE;
 }
 
 int main()
 {
 	int error_count = 0;
 
-	// char *drawing = gen_drawing(error_count);
-	// printf(drawing);
-
 	char **word_list;
 	int word_count;
 
 	load_wordlist(&word_list, &word_count);
 
-	printf("Words available:\n");
-	for (int i = 0; i < word_count; i++)
-	{
-		printf("%i: %s", i + 1, word_list[i]);
-	}
-	printf("\n");
+	// printf("Words available:\n");
+	// for (int i = 0; i < word_count; i++)
+	// {
+	// 	printf("%i: %s", i + 1, word_list[i]);
+	// }
+	// printf("\n");
 
-	// srand (time (0));
+	srand(time(0));
 	char *word = word_list[rand() % word_count];
 
-	printf("%s", word);
+	// printf("%s", word);
 
-	char *guesses = malloc(sizeof(char) * strlen(word));
-	init_str(guesses, '\0', strlen(word));
+	char *guesses = xmalloc(sizeof(char) * 26);
+	init_str(guesses, '\0', 26);
 
 	int user_input;
 
 	while (1)
 	{
 		print_hangman(error_count);
-		print_w_guesses(word, guesses);
+		print_word(word, guesses);
+		if (strlen(guesses) > 0)
+			printf("Previous guesses: %s\n", guesses);
+
 		user_input = prompt_user();
 		if (user_input == EOF)
 		{
@@ -203,6 +214,9 @@ int main()
 		}
 		else
 		{
+			if (!isalpha((char)user_input))
+				continue;
+
 			if (has_char(guesses, (char)user_input))
 			{
 				printf("You already guessed this letter!");
@@ -211,9 +225,20 @@ int main()
 			else
 				guesses[strlen(guesses)] = (char)user_input;
 
+			if (check_for_win(word, guesses))
+			{
+				printf("---¤¤ %s ¤¤--- Well done!!\n", word);
+				return 0;
+			}
 			if (!has_char(word, (char)user_input))
 			{
 				error_count++;
+			}
+			if (error_count == 8)
+			{
+				print_hangman(error_count);
+				printf("Game over! The answer was %s\n", word);
+				return 0;
 			}
 		}
 	}
