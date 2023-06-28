@@ -200,7 +200,8 @@ int main()
 	int error_count = 0;
 	while (true)
 	{
-		print_hangman(error_count);
+		if (error_count > 0)
+			print_hangman(error_count);
 		print_word(word_to_guess, guesses);
 		if (strlen(guesses) > 0)
 			printf("Previous guesses: %s\n", guesses);
