@@ -151,11 +151,11 @@ void print_hangman(int error_count)
 
 void print_word(char *word, char *guesses)
 {
-	char *output = xmalloc(sizeof(char) * strlen(word));
-	for (int i = 0; i < strlen(word) - 1; i++)
+	char *output = xmalloc(strlen(word) + 1);
+	for (int i = 0; i < strlen(word); i++)
 		output[i] = has_char(guesses, word[i]) ? word[i] : '_';
 
-	output[strlen(word) - 1] = '\0';
+	output[strlen(word)] = '\0';
 
 	printf("Guess the word: %s\n", output);
 	free(output);
@@ -163,7 +163,7 @@ void print_word(char *word, char *guesses)
 
 bool check_for_win(char *word, char *guesses)
 {
-	for (int i = 0; i < strlen(word) - 1; i++)
+	for (int i = 0; i < strlen(word); i++)
 	{
 		if (!has_char(guesses, word[i]))
 			return false;
@@ -181,7 +181,7 @@ int main()
 	srand(time(0));
 	int random_index = rand() % wordlist.len;
 	// printf("%i", strlen(wordlist.words[random_index]));
-	char *word_to_guess = xmalloc(sizeof(char *) * strlen(wordlist.words[random_index]) - 1);
+	char *word_to_guess = xmalloc(strlen(wordlist.words[random_index]));
 	// Copy to new buffer and strip the \n
 	// The string from getline would be "abc\n" so strlen() returns 4 but the buffer length is 5
 	strncpy(word_to_guess, wordlist.words[random_index], strlen(wordlist.words[random_index]) - 1);
